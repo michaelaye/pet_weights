@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+from datetime import date
 from pathlib import Path
 
 import fire
+import hvplot
+import hvplot.pandas
+import numpy as np
 import pandas as pd
 import toml
-import numpy as np
-from datetime import date
 
 confpath = Path.home() / ".pet_weights_conf.toml"
 if confpath.exists():
@@ -62,6 +64,14 @@ class PetWeights:
         df = df.append(d, ignore_index=True)
         df.to_csv(self.datapath, index=False)
 
+    def plot(self, name: str = None):
+        df = pd.read_csv(self.datapath, parse_dates=['date']).set_index('date')
+        if name is not None:
+            df = df[df.Pet == name]
+            p = df.hvplot(x='date', y='weight [kg]', kind='line')
+        else:
+            p = df.hvplot(x='date', y='weight [kg]', by='Pet')
+        hvplot.show(p.opts(show_grid=True))
 
 def main():
     fire.Fire(PetWeights)
